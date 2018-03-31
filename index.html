@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	   <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no">
+	<title>Document</title>
+	<script src="https://cdn.bootcss.com/jquery/2.2.2/jquery.min.js"></script>
+	<style>
+	*{
+		padding: 0;
+		margin: 0;
+		box-sizing: border-box;
+	}
+	a{
+		list-style: none;
+		text-decoration: none;
+	}
+
+	  ul,li{
+	  	list-style: none;
+	  }
+
+		.haha{
+			position: relative;
+		}
+
+
+		.webNews{
+			margin:10px; 
+            position: absolute;
+			width:200px;
+			padding:10px;
+			border: 1px solid;
+
+		}
+		.webNews img{
+			width: 100%;
+		}
+		.webNews p{
+			border-top: 2px solid #cccccc;
+		}
+
+	</style>
+</head>
+<body>
+
+<ul class="haha">
+
+   
+</ul>
+ <div class="tag"></div>
+
+<script>
+
+
+
+  var curPage = 1,perPageCount = 20;
+  var index = 0
+	function getData(callback){
+		$.ajax({
+			url: 'http://platform.sina.com.cn/slide/album_tech',
+			dataType: 'jsonp',   //这里使用了新浪新闻的 jsonp 接口，大家可以直接看数据， 如： http://platform.sina.com.cn/slide/album_tech?jsoncallback=func&app_key=1271687855&num=3&page=4
+			jsonp:"jsoncallback",
+			data: {
+				app_key: '1271687855',
+				num: perPageCount,
+				page: curPage
+			}
+		}).done(function(ret){
+			if(ret && ret.status && ret.status.code === "0"){
+				console.log(ret)
+				callback(ret)
+				curPage++
+				index++
+				
+			}else{
+				console.log('get error data');
+			}
+		});
+	}
+
+	function dosomething(ret){
+		$(ret.data).each(function(){
+			makeNode(this)
+
+		})
+        $('.webNews img').on('load',function(){
+        	console.log('图片加载完成')
+        	$('.haha').height((highest(waterfall($(this).parent()))))
+
+        })
+		console.log('完成了一次ajax' + index)
+		// $('.webNews').each(function(){
+		// 	waterfall($(this))
+		// })
+	}
+
+	
+   
+
+    function makeNode(ret){
+    	var tal = ''
+    	var tal = 	'<li class="webNews">'
+        +	'<a href=' + ret.url + '>'
+        +   ret.name  +'</a>' 
+		+   '<img src=' + ret.img_url + '>'
+		+   '<p>'       + ret.short_intro + '</p>'
+	    +   '</li>'
+
+       $('.haha').append($(tal))
+    }
+
+    
+
+
+
+
+ 
+	var width = 210
+	var column = Math.floor($(window).width() / width)  
+    
+    
+    var array = []
+    for(var i = 0;i < column ; i++){
+    	array.push(0)
+    }
+    console.log(array)
+
+      
+	function waterfall($node){
+ 			var minIndex = 0
+ 			var minValue = array[minIndex]
+ 			console.log(array.length)
+ 		for(var i = 0; i < array.length;i++){
+ 			if(minValue > array[i]){
+ 				minIndex = i
+ 			    minValue = array[minIndex]
+ 			}
+        }
+         $node.css({
+          	top : minValue + 40,
+          	left : minIndex * width,
+          	
+          })
+         array[minIndex] += $node.height()+ 40
+         console.log(array)
+ 		return array
+	}
+	
+	function highest(array){
+		
+			var maxIndex = 0
+ 			var maxValue = array[maxIndex]
+ 		for(var i = 0; i < array.length;i++){
+ 			if(maxValue < array[i]){
+ 				maxIndex = i
+ 			    maxValue = array[maxIndex]
+ 			}
+        }
+        return maxValue	
+	}
+    
+     var clock
+    $(window).on('scroll',function(){
+	  if(clock){
+	  	clearTimeout(clock)	  	
+	  }
+	  clock = setTimeout(function(){
+	  	if(isShow($('.tag'))){
+	  		getData(dosomething)
+	  	}
+	  },100)
+	})
+
+
+	   function isShow($node){
+	   	return ($(window).scrollTop() + $(window).height() > $node.offset().top - 300)
+	   }
+
+getData(dosomething)
+
+</script>
+</body>
+</html>
